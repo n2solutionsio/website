@@ -1,12 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Welcome from '../components/Welcome';
+import Hero from '../components/Hero.astro';
 ---
 
 <BaseLayout title="N2 Solutions">
-  <div class="mx-auto max-w-5xl px-6 py-20">
-    <h1 class="mb-4">N2 Solutions</h1>
-    <p class="mb-10 text-lg text-text-muted">Site is under construction.</p>
-    <Welcome client:load />
-  </div>
+  <Hero />
 </BaseLayout>
