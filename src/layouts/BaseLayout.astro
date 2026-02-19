@@ -1,11 +1,14 @@
 ---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
 interface Props {
   title: string;
   description?: string;
 }
 
 const { title, description = 'N2 Solutions' } = Astro.props;
-import '../styles/global.css';
 ---
 
 <html lang="en">
@@ -24,7 +27,11 @@ import '../styles/global.css';
     />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen">
-    <slot />
+  <body class="flex min-h-screen flex-col">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
   </body>
 </html>
