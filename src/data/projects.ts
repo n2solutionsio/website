@@ -4,7 +4,7 @@ export interface Project {
   tags: string[];
   repo?: string;
   url?: string;
-  status: 'active' | 'planned' | 'complete';
+  status: 'active' | 'complete';
 }
 
 const projects: Project[] = [
@@ -22,20 +22,6 @@ const projects: Project[] = [
       'Proxmox-based homelab running Kubernetes, Docker, and various self-hosted services. Fully managed with IaC.',
     tags: ['Proxmox', 'Kubernetes', 'Docker', 'Terraform', 'Ansible'],
     status: 'active',
-  },
-  {
-    title: 'CI/CD Pipeline Templates',
-    description:
-      'Reusable GitHub Actions workflows for building, testing, and deploying cloud-native applications.',
-    tags: ['GitHub Actions', 'CI/CD', 'DevOps'],
-    status: 'planned',
-  },
-  {
-    title: 'Raspberry Pi Cluster',
-    description:
-      'Multi-node Raspberry Pi cluster for learning distributed systems, Kubernetes, and edge computing.',
-    tags: ['Raspberry Pi', 'Kubernetes', 'Edge Computing'],
-    status: 'planned',
   },
 ];
 
