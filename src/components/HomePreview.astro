@@ -1,0 +1,50 @@
+---
+const previews = [
+  {
+    title: 'About',
+    description:
+      'Builder, sailor, rider, Philly fan. Platform engineering by trade, wind therapy by choice.',
+    href: '/about',
+    label: 'Learn More',
+  },
+  {
+    title: 'Projects',
+    description:
+      'Open source tools, homelab builds, cloud-native experiments, and Raspberry Pi tinkering.',
+    href: '/projects',
+    label: 'View Projects',
+  },
+  {
+    title: 'Blog',
+    description:
+      'Writing about DevOps, platform engineering, IaC, security, and the journey of building in public.',
+    href: '/blog',
+    label: 'Read Posts',
+  },
+];
+---
+
+<section class="border-t border-border/50 py-20 sm:py-24">
+  <div class="mx-auto max-w-5xl px-6">
+    <div class="grid gap-6 sm:grid-cols-3">
+      {
+        previews.map((item) => (
+          <a
+            href={item.href}
+            class="group rounded-lg border border-border/50 bg-bg-secondary/50 p-6 transition-all hover:border-accent/30 hover:bg-bg-secondary"
+          >
+            <h3 class="mb-3 text-lg font-semibold text-text group-hover:text-accent">
+              {item.title}
+            </h3>
+            <p class="mb-4 text-sm leading-relaxed text-text-muted">
+              {item.description}
+            </p>
+            <span class="text-sm font-medium text-accent">
+              {item.label} &rarr;
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
