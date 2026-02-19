@@ -7,7 +7,10 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 );
 ---
 
-<BaseLayout title="Blog | N2 Solutions" description="Writing about DevOps, platform engineering, infrastructure as code, security, and the journey of building in public.">
+<BaseLayout
+  title="Blog | N2 Solutions"
+  description="Writing about DevOps, platform engineering, infrastructure as code, security, and the journey of building in public."
+>
   <div class="mx-auto max-w-5xl px-6 py-20">
     <p class="mb-4 text-sm font-medium uppercase tracking-widest text-accent">
       Blog

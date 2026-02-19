@@ -18,18 +18,21 @@ const formattedDate = date.toLocaleDateString('en-US', {
 ---
 
 <BaseLayout title={`${title} | N2 Solutions`} description={description}>
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": title,
-    "description": description,
-    "datePublished": date.toISOString(),
-    "author": {
-      "@type": "Person",
-      "name": "Nick Narcise",
-      "url": "https://n2solutions.io/about"
-    }
-  })} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description: description,
+      datePublished: date.toISOString(),
+      author: {
+        '@type': 'Person',
+        name: 'Nick Narcise',
+        url: 'https://n2solutions.io/about',
+      },
+    })}
+  />
   <article class="mx-auto max-w-3xl px-6 py-20">
     <header class="mb-12">
       <a

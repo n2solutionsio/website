@@ -1,14 +1,14 @@
 ---
-title: "Homelab v1: The Foundation"
-description: "A look at the initial homelab setup — Proxmox, networking, and the infrastructure that powers everything."
+title: 'Homelab v1: The Foundation'
+description: 'A look at the initial homelab setup — Proxmox, networking, and the infrastructure that powers everything.'
 date: 2026-02-18
-tags: ["homelab", "proxmox", "infrastructure"]
+tags: ['homelab', 'proxmox', 'infrastructure']
 draft: true
 ---
 
 ## The Setup
 
-*Coming soon — documenting the full homelab build from hardware to software stack.*
+_Coming soon — documenting the full homelab build from hardware to software stack._
 
 This post will cover:
 

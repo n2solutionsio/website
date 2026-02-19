@@ -1,8 +1,8 @@
 ---
 title: "Hello World: Why I'm Building in Public"
-description: "Kicking off the N2 Solutions blog. Why I decided to build in the open, what to expect, and where this journey is headed."
+description: 'Kicking off the N2 Solutions blog. Why I decided to build in the open, what to expect, and where this journey is headed.'
 date: 2026-02-19
-tags: ["meta", "open-source", "journey"]
+tags: ['meta', 'open-source', 'journey']
 draft: false
 ---
 
