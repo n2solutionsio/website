@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GalleryFilter from '../components/GalleryFilter';
+import photos from '../data/gallery';
+---
+
+<BaseLayout title="Gallery | N2 Solutions">
+  <div class="mx-auto max-w-5xl px-6 py-20">
+    <p class="mb-4 text-sm font-medium uppercase tracking-widest text-accent">
+      Gallery
+    </p>
+    <h1 class="mb-6">From the Field</h1>
+    <p class="mb-12 max-w-3xl text-lg leading-relaxed text-text-muted">
+      Moments from the stands, the water, the road, and everything in between.
+    </p>
+
+    <GalleryFilter photos={photos} client:load />
+  </div>
+</BaseLayout>

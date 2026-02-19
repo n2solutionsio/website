@@ -21,12 +21,19 @@ const previews = [
     href: '/blog',
     label: 'Read Posts',
   },
+  {
+    title: 'Gallery',
+    description:
+      'Photos from Eagles and Phillies games, sailing trips, motorcycle rides, and more.',
+    href: '/gallery',
+    label: 'View Photos',
+  },
 ];
 ---
 
 <section class="border-t border-border/50 py-20 sm:py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <div class="grid gap-6 sm:grid-cols-3">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {
         previews.map((item) => (
           <a
