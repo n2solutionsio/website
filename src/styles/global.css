@@ -59,3 +59,61 @@
     @apply bg-accent/30 text-text;
   }
 }
+
+/* Blog prose styles */
+.prose {
+  @apply text-text-muted leading-relaxed;
+}
+
+.prose h2 {
+  @apply mt-12 mb-4 text-2xl font-bold text-text sm:text-3xl;
+}
+
+.prose h3 {
+  @apply mt-8 mb-3 text-xl font-bold text-text sm:text-2xl;
+}
+
+.prose p {
+  @apply mb-6;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-6 ml-6 space-y-2;
+}
+
+.prose ul {
+  @apply list-disc;
+}
+
+.prose ol {
+  @apply list-decimal;
+}
+
+.prose li strong {
+  @apply text-text;
+}
+
+.prose code {
+  @apply rounded bg-bg-tertiary px-1.5 py-0.5 text-sm text-accent;
+}
+
+.prose pre {
+  @apply mb-6 overflow-x-auto rounded-lg bg-bg-secondary p-4 text-sm;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
+
+.prose blockquote {
+  @apply mb-6 border-l-2 border-accent pl-4 italic text-text-muted;
+}
+
+.prose a {
+  @apply text-accent underline hover:text-accent-hover;
+}
+
+.prose em {
+  @apply text-text-muted;
+}

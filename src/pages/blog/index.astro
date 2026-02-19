@@ -1,0 +1,59 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout title="Blog | N2 Solutions">
+  <div class="mx-auto max-w-5xl px-6 py-20">
+    <p class="mb-4 text-sm font-medium uppercase tracking-widest text-accent">
+      Blog
+    </p>
+    <h1 class="mb-6">Thoughts &amp; Builds</h1>
+    <p class="mb-16 max-w-3xl text-lg leading-relaxed text-text-muted">
+      Writing about DevOps, platform engineering, infrastructure as code,
+      security, and the journey of building in public.
+    </p>
+
+    {
+      posts.length > 0 ? (
+        <div class="space-y-6">
+          {posts.map((post) => (
+            <a
+              href={`/blog/${post.id}`}
+              class="group block rounded-lg border border-border/50 bg-bg-secondary/50 p-6 transition-all hover:border-accent/30 hover:bg-bg-secondary"
+            >
+              <div class="mb-2 flex flex-wrap items-center gap-3 text-sm text-text-muted">
+                <time datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+                <div class="flex gap-2">
+                  {post.data.tags.map((tag) => (
+                    <span class="rounded-full bg-bg-tertiary px-2 py-0.5 text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <h2 class="mb-2 text-xl font-semibold text-text group-hover:text-accent">
+                {post.data.title}
+              </h2>
+              <p class="text-sm text-text-muted">{post.data.description}</p>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="rounded-lg border border-border/50 bg-bg-secondary/50 p-12 text-center">
+          <p class="text-text-muted">Blog posts coming soon.</p>
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>
