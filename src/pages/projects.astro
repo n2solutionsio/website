@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import projects from '../data/projects';
 ---
 
 <BaseLayout title="Projects | N2 Solutions">
@@ -13,10 +15,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       Pi projects. All code lives on
       <a href="https://github.com/n2solutionsio">GitHub</a>.
     </p>
-    <div
-      class="rounded-lg border border-border/50 bg-bg-secondary/50 p-12 text-center"
-    >
-      <p class="text-text-muted">Projects coming soon.</p>
+
+    <div class="grid gap-6 sm:grid-cols-2">
+      {projects.map((project) => <ProjectCard project={project} />)}
     </div>
   </div>
 </BaseLayout>
