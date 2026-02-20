@@ -4,7 +4,7 @@ import { categoryLabels } from '../data/gallery';
 
 // Glob all images under src/assets/photos/ at build time
 const imageModules = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/photos/**/*.{jpg,jpeg,png,webp}',
+  '../assets/photos/**/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
   { eager: true },
 );
 
