@@ -182,9 +182,9 @@ const currentPath = Astro.url.pathname;
   const closeIcon = document.getElementById('close-icon');
 
   btn?.addEventListener('click', () => {
-    const isOpen = menu?.classList.toggle('hidden');
+    const isHidden = menu?.classList.toggle('hidden');
     menuIcon?.classList.toggle('hidden');
     closeIcon?.classList.toggle('hidden');
-    btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    btn.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
   });
 </script>

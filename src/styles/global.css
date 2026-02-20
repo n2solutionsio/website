@@ -28,6 +28,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
   body {
     @apply bg-bg text-text font-sans leading-relaxed;
   }
@@ -53,6 +59,10 @@
 
   a {
     @apply text-accent hover:text-accent-hover transition-colors;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
   }
 
   ::selection {
