@@ -2,8 +2,19 @@ export interface Photo {
   src: string;
   alt: string;
   category: GalleryCategory;
+  width: number;
+  height: number;
+  albumSlug?: string;
+  albumTitle?: string;
+  albumDate?: string;
+}
+
+export interface Album {
+  slug: string;
+  title: string;
   date?: string;
-  caption?: string;
+  category: GalleryCategory;
+  photos: Photo[];
 }
 
 export type GalleryCategory =
@@ -11,6 +22,7 @@ export type GalleryCategory =
   | 'phillies'
   | 'sailing'
   | 'motorcycles'
+  | 'pets'
   | 'events';
 
 export const categoryLabels: Record<GalleryCategory, string> = {
@@ -18,18 +30,6 @@ export const categoryLabels: Record<GalleryCategory, string> = {
   phillies: 'Phillies',
   sailing: 'Sailing',
   motorcycles: 'Motorcycles',
+  pets: 'Pets',
   events: 'Events',
 };
-
-// Photos will be added here as they are uploaded to src/assets/photos/
-// Example entry:
-// {
-//   src: '/photos/eagles/game-day-2026.jpg',
-//   alt: 'Eagles game day at Lincoln Financial Field',
-//   category: 'eagles',
-//   date: '2026-01-12',
-//   caption: 'Divisional round vs Dallas',
-// },
-const photos: Photo[] = [];
-
-export default photos;
