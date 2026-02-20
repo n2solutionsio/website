@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import GalleryFilter from '../components/GalleryFilter';
-import photos from '../data/gallery';
+import { discoverPhotos, groupPhotosByAlbum } from '../utils/gallery';
+
+const photos = await discoverPhotos();
+const albums = groupPhotosByAlbum(photos);
+const initialCategory = Astro.url.searchParams.get('category') ?? 'all';
 ---
 
 <BaseLayout
@@ -17,6 +21,10 @@ import photos from '../data/gallery';
       Moments from the stands, the water, the road, and everything in between.
     </p>
 
-    <GalleryFilter photos={photos} client:idle />
+    <GalleryFilter
+      albums={albums}
+      initialCategory={initialCategory}
+      client:idle
+    />
   </div>
 </BaseLayout>

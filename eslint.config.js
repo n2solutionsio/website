@@ -27,6 +27,7 @@ export default [
       ...tseslint.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      'no-undef': 'off', // TypeScript handles this natively
     },
     settings: {
       react: { version: 'detect' },
