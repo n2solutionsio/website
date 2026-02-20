@@ -39,10 +39,10 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Deploy to S3
-        run: aws s3 sync dist/ s3://n2solutions.io-main-930d1c2f --delete
+        run: aws s3 sync dist/ s3://${{ vars.AWS_S3_BUCKET }} --delete
 
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id E2B5XVJDHIE6AJ --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
