@@ -11,8 +11,8 @@ const projects: Project[] = [
   {
     title: 'N2 Solutions Website',
     description:
-      'This site. Built with Astro, React, and Tailwind CSS. Hosted on AWS S3 + CloudFront with IaC via OpenTofu and Terragrunt.',
-    tags: ['Astro', 'React', 'Tailwind', 'AWS', 'OpenTofu'],
+      'This site. Built with Astro, React, and Tailwind CSS. Hosted on AWS S3 + CloudFront with CI/CD via GitHub Actions.',
+    tags: ['Astro', 'React', 'Tailwind', 'AWS', 'GitHub Actions'],
     repo: 'https://github.com/n2solutionsio/website',
     status: 'active',
   },
