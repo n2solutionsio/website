@@ -7,23 +7,21 @@ import {
 
 interface Props {
   albums: Album[];
-  initialCategory: string;
 }
 
-export default function GalleryFilter({ albums, initialCategory }: Props) {
-  const [active, setActive] = useState<GalleryCategory | 'all'>(
-    isValidCategory(initialCategory) ? initialCategory : 'all',
-  );
+export default function GalleryFilter({ albums }: Props) {
+  const [active, setActive] = useState<GalleryCategory | 'all'>('all');
 
-  // Sync with browser back/forward
+  // Read category from URL on mount and sync with browser back/forward
   useEffect(() => {
-    function onPopState() {
+    function syncFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const cat = params.get('category') ?? 'all';
       setActive(isValidCategory(cat) ? cat : 'all');
     }
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
   function handleFilter(cat: GalleryCategory | 'all') {
