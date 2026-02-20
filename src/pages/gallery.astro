@@ -5,7 +5,6 @@ import { discoverPhotos, groupPhotosByAlbum } from '../utils/gallery';
 
 const photos = await discoverPhotos();
 const albums = groupPhotosByAlbum(photos);
-const initialCategory = Astro.url.searchParams.get('category') ?? 'all';
 ---
 
 <BaseLayout
@@ -21,10 +20,6 @@ const initialCategory = Astro.url.searchParams.get('category') ?? 'all';
       Moments from the stands, the water, the road, and everything in between.
     </p>
 
-    <GalleryFilter
-      albums={albums}
-      initialCategory={initialCategory}
-      client:idle
-    />
+    <GalleryFilter albums={albums} client:idle />
   </div>
 </BaseLayout>
