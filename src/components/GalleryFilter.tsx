@@ -29,6 +29,7 @@ export default function GalleryFilter({ photos }: Props) {
       <div className="mb-8 flex flex-wrap gap-2">
         <button
           onClick={() => setActive('all')}
+          aria-pressed={active === 'all'}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
             active === 'all'
               ? 'bg-accent text-bg'
@@ -41,6 +42,7 @@ export default function GalleryFilter({ photos }: Props) {
           <button
             key={cat}
             onClick={() => setActive(cat)}
+            aria-pressed={active === cat}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               active === cat
                 ? 'bg-accent text-bg'
