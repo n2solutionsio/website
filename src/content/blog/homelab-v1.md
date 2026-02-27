@@ -2,7 +2,18 @@
 title: 'Building a Production-Grade Homelab with AI and IaC'
 description: 'How I built an enterprise-style homelab with Claude Code as my AI co-pilot — VLANs, Proxmox, k3s, and a full GitOps platform, all managed with Terraform and ArgoCD.'
 date: 2026-02-27
-tags: ['homelab', 'infrastructure', 'terraform', 'kubernetes', 'devops', 'ai', 'claude', 'open-source', 'cncf']
+tags:
+  [
+    'homelab',
+    'infrastructure',
+    'terraform',
+    'kubernetes',
+    'devops',
+    'ai',
+    'claude',
+    'open-source',
+    'cncf',
+  ]
 draft: true
 ---
 
@@ -35,13 +46,13 @@ Nothing fancy on paper. The magic is in how it's all wired together.
 
 Five VLANs keep traffic isolated:
 
-| VLAN | Subnet | Purpose |
-|------|--------|---------|
-| 1 (Home) | 192.168.1.0/24 | Management, clients, DNS |
-| 20 (Storage) | 10.20.20.0/24 | 10G NFS traffic only |
-| 30 (Compute) | 10.30.30.0/24 | k3s cluster |
-| 40 (IoT) | 10.40.40.0/24 | IoT devices, isolated |
-| 50 (Guest) | 10.50.50.0/24 | Guest WiFi, isolated |
+| VLAN         | Subnet         | Purpose                  |
+| ------------ | -------------- | ------------------------ |
+| 1 (Home)     | 192.168.1.0/24 | Management, clients, DNS |
+| 20 (Storage) | 10.20.20.0/24  | 10G NFS traffic only     |
+| 30 (Compute) | 10.30.30.0/24  | k3s cluster              |
+| 40 (IoT)     | 10.40.40.0/24  | IoT devices, isolated    |
+| 50 (Guest)   | 10.50.50.0/24  | Guest WiFi, isolated     |
 
 The UDM Pro enforces firewall rules between VLANs. Compute can reach the Proxmox API (for monitoring) but nothing else on the home network. IoT and Guest are fully isolated — they get internet and nothing more.
 
@@ -96,7 +107,7 @@ The phases built on each other:
 2. **Physical network** — Switch config, bridge mode
 3. **Logical network** — VLANs, firewall rules
 4. **Hypervisor** — Proxmox networking and storage
-5. *(backlogged)*
+5. _(backlogged)_
 6. **Compute** — k3s cluster
 7. **GitOps + monitoring** — ArgoCD, Prometheus, Grafana
 8. **Logging + security** — Loki, Alloy, Falco
