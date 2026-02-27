@@ -1,8 +1,8 @@
 ---
-title: 'Building a Production-Grade Homelab with IaC'
-description: 'How I built an enterprise-style homelab — VLANs, Proxmox, k3s, and a full GitOps platform, all managed with Terraform and ArgoCD.'
+title: 'Building a Production-Grade Homelab with AI and IaC'
+description: 'How I built an enterprise-style homelab with Claude Code as my AI co-pilot — VLANs, Proxmox, k3s, and a full GitOps platform, all managed with Terraform and ArgoCD.'
 date: 2026-02-27
-tags: ['homelab', 'infrastructure', 'terraform', 'kubernetes', 'devops']
+tags: ['homelab', 'infrastructure', 'terraform', 'kubernetes', 'devops', 'ai', 'claude', 'open-source', 'cncf']
 draft: true
 ---
 
@@ -10,7 +10,11 @@ draft: true
 
 I built a homelab. But not the "throw a NAS in a closet and call it a day" kind.
 
-This is a production-grade infrastructure platform — five VLANs, a 10-gigabit storage backbone, a three-node Kubernetes cluster, full GitOps, and an observability stack that would make a startup jealous. Every piece of it is managed with Terraform and ArgoCD. Zero manual configuration. If I can't define it in code, it doesn't exist.
+This is a production-grade infrastructure platform — five VLANs, a 10-gigabit storage backbone, a three-node Kubernetes cluster, full GitOps, and an observability stack that would make a startup jealous. Built entirely on open-source and CNCF projects. Managed entirely with Infrastructure as Code. Zero vendor lock-in. Zero manual configuration. If I can't define it in code, it doesn't exist.
+
+Oh, and my pair programmer for the entire build? [Claude Code](https://claude.ai/claude-code) — Anthropic's AI coding agent. I broke the project into 10 phases across 30 GitHub issues, and Claude Code helped me ship every single one in under a week. More on that later.
+
+The code is on GitHub. The orchestration repo — `homelab-live` — is private by design. It contains Terragrunt configurations, environment-specific variables, and references to secrets. That's where the project lives and where all 30 issues were tracked. But the reusable pieces are all public: [homelab-gitops](https://github.com/n2solutionsio/homelab-gitops) has every ArgoCD manifest and Helm values file, and the Terraform modules — [terraform-proxmox-vm](https://github.com/n2solutionsio/terraform-proxmox-vm), [terraform-proxmox-k3s](https://github.com/n2solutionsio/terraform-proxmox-k3s), and [terraform-proxmox-network](https://github.com/n2solutionsio/terraform-proxmox-network) — are fully open source. You get the patterns and the code without my IP addresses and secrets.
 
 This post is the overview — the "what" and "why." Upcoming posts in this series will tear apart each layer in detail.
 
@@ -68,11 +72,13 @@ On top of k3s, ArgoCD runs the show using an **app-of-apps** pattern. A single r
 
 Every one of these is an ArgoCD Application. No `helm install`. No `kubectl apply`. Git is the source of truth.
 
+A deliberate choice here: **every tool in this stack is open source.** OpenTofu over Terraform Cloud. OpenBao over HashiCorp Vault. Proxmox over VMware. k3s over managed Kubernetes. ArgoCD, Falco, cert-manager, and MetalLB are all CNCF projects. Grafana, Loki, Alloy, and Prometheus are open-source Grafana Labs projects. The entire platform runs without a single commercial license or SaaS dependency. If a project gets acquired or changes its license tomorrow, I'm not locked in.
+
 ## IaC Everything
 
 Two repos drive the entire infrastructure:
 
-**`homelab-live`** contains all Terraform/Terragrunt code — Proxmox VMs, UniFi networks, firewall rules, the ArgoCD bootstrap, and reusable modules. Terragrunt handles environment structure and dependency ordering.
+**`homelab-live`** contains all OpenTofu/Terragrunt code — Proxmox VMs, UniFi networks, firewall rules, the ArgoCD bootstrap, and reusable modules. OpenTofu (the open-source Terraform fork) keeps the IaC layer free from BSL licensing concerns. Terragrunt handles environment structure and dependency ordering.
 
 **`homelab-gitops`** holds ArgoCD Application manifests and Helm values. This is what ArgoCD watches. Adding a new platform component means adding a YAML file here — ArgoCD picks it up and deploys.
 
@@ -80,9 +86,46 @@ Secrets follow a strict pipeline: 1Password is the source of truth. External Sec
 
 The result: I can rebuild the entire platform from scratch with `terragrunt run-all apply` and a few minutes of ArgoCD sync time. Every configuration decision is documented in code.
 
+## Breaking It Down: GitHub Issues as the Backbone
+
+Before writing a single line of Terraform, I broke the entire project into 10 phases and 30 GitHub issues. Each issue was scoped to a single deliverable — "Configure Proxmox VLAN trunk," "Deploy ArgoCD app-of-apps," "Enable AlertManager with Slack notifications." No epics that take a month. No vague tickets. Every issue had clear acceptance criteria and fit into a phase.
+
+The phases built on each other:
+
+1. **Foundation** — State backend
+2. **Physical network** — Switch config, bridge mode
+3. **Logical network** — VLANs, firewall rules
+4. **Hypervisor** — Proxmox networking and storage
+5. *(backlogged)*
+6. **Compute** — k3s cluster
+7. **GitOps + monitoring** — ArgoCD, Prometheus, Grafana
+8. **Logging + security** — Loki, Alloy, Falco
+9. **TLS** — Let's Encrypt wildcard certs
+10. **Alerting** — AlertManager + Slack
+
+This structure was critical. It turned a massive project into a checklist. Each issue got its own branch, its own PR, its own commit history. When something broke, I knew exactly which phase introduced it. When I picked the project back up after a break, I knew exactly where I left off.
+
+If you're planning a homelab build — or any infrastructure project — start with the issue tracker. The code writes itself once the scope is clear.
+
+## The AI Co-Pilot
+
+Here's the part that surprised me: I built this entire platform with Claude Code as my pair programmer. Not as a chatbot I copy-pasted from — as an actual CLI agent running in my terminal, reading my codebase, writing Terraform modules, and executing commands.
+
+Claude Code worked directly against the GitHub issues. I'd open an issue, describe what I needed, and we'd work through it together — often closing multiple issues in a single session. What that looked like in practice:
+
+- **Terraform authoring** — Claude Code wrote the Terragrunt modules for Proxmox VMs, UniFi VLANs, firewall rules, and the k3s cluster. It understood provider quirks (like the UniFi API's race condition with firewall rule indexes) and worked through them.
+- **MCP integrations** — I connected Claude Code to my infrastructure via Model Context Protocol servers — Proxmox, UniFi, and Terraform Registry. It could query my actual switch ports, VM states, and network topology in real-time while writing code against them.
+- **Debugging** — When cloud-init VMs collided on hostnames, when NFS mounts failed because Ubuntu 24.04 doesn't ship `nfs-common`, when Loki's replication factor broke with a single replica — Claude Code diagnosed and fixed these without me having to dig through docs.
+- **GitOps pipeline** — Every ArgoCD Application manifest, Helm values file, and ExternalSecret was authored collaboratively. Claude Code maintained context across sessions using its memory system — it knew the full architecture, every IP address, every lesson learned.
+- **Issue management** — Claude Code created issues, closed them with commits, and tracked what was done vs. what was next. The GitHub project board stayed current without me manually updating it.
+
+The velocity was unreal. Ten phases of infrastructure — networking, compute, GitOps, secrets, observability, security, TLS, alerting — all 30 issues closed in under a week. That's not a testament to my typing speed. It's what happens when you combine clear issue scoping with an AI agent that understands your codebase and can operate autonomously within it.
+
+I'll write a dedicated post about the Claude Code workflow, but the short version: if you're doing IaC work and you're not using an AI coding agent, you're leaving 10x on the table.
+
 ## What's Next
 
-This is post #1 of a seven-part series. Coming up:
+This is post #1 of an eight-part series. Coming up:
 
 1. **Network deep dive** — VLAN design, firewall rules, and 10G architecture
 2. **Proxmox + Terraform** — IaC for your hypervisor
@@ -90,7 +133,8 @@ This is post #1 of a seven-part series. Coming up:
 4. **GitOps with ArgoCD** — The app-of-apps pattern
 5. **Secrets management** — 1Password, ESO, and OpenBao
 6. **Full observability** — Prometheus, Loki, Falco, and AlertManager
+7. **AI-driven IaC** — How Claude Code built the entire platform
 
 Each post will include the actual code, the decisions behind it, and the lessons learned along the way.
 
-If you're building a homelab and want to do it with real IaC — not just clicking through UIs — follow along. The code is open source, the process is documented, and I'm sharing everything.
+If you're building a homelab and want to do it with real IaC and real open-source tooling — not clicking through UIs or paying for licenses — follow along. Whether you're here for the infrastructure, the CNCF stack, the AI workflow, or all of the above, the code is open source, the process is documented, and I'm sharing everything.
