@@ -17,135 +17,74 @@ tags:
 draft: true
 ---
 
-## This Isn't Just a Rack of Gear
+My homelab environment has been kind of a mess as of late. I have a lot of big ideas, but most of the time these days I'm finding that I lack the time to work on it. Something else always jumps in front of what I'm trying to do — takes priority, or a shiny thing happens (squirrel!). Over the last few years I've been buying various things for my homelab that I've been wanting to learn or experiment with, and I kept telling myself I'll eventually get to it... With the help of AI, now is that time.
 
-I built a homelab. But not the "throw a NAS in a closet and call it a day" kind.
+With Claude Code, I set out to reconfigure and improve my homelab last week. Through ten phases of infrastructure, 30 GitHub issues, and an AI pair programmer — all shipped in under seven days.
 
-This is a production-grade infrastructure platform — five VLANs, a 10-gigabit storage backbone, a three-node Kubernetes cluster, full GitOps, and an observability stack that would make a startup jealous. Built entirely on open-source and CNCF projects. Managed entirely with Infrastructure as Code. Zero vendor lock-in. Zero manual configuration. If I can't define it in code, it doesn't exist.
+Not the "throw a NAS in a closet" kind of homelab. This is a production-grade infrastructure platform with five VLANs, a 10-gigabit storage backbone, a three-node Kubernetes cluster, a full GitOps pipeline, and an observability stack that would make most startups jealous. Every single piece managed with Infrastructure as Code. Every tool in the stack open source. Zero vendor lock-in. Not quite zero manual configuration, but as close to it as I can get — and I'm hoping to refine and build more automation as I go.
 
-Oh, and my pair programmer for the entire build? [Claude Code](https://claude.ai/claude-code) — Anthropic's AI coding agent. I broke the project into 10 phases across 30 GitHub issues, and Claude Code helped me ship every single one in under a week. More on that later.
+The whole thing started with a blank GitHub repo and a question: _what would it look like to build a homelab the way you'd build a real platform — with proper IaC, proper GitOps, and an AI agent doing the heavy lifting?_
 
-The code is on GitHub. The orchestration repo — `homelab-live` — is private by design. It contains Terragrunt configurations, environment-specific variables, and references to secrets. That's where the project lives and where all 30 issues were tracked. But the reusable pieces are all public: [homelab-gitops](https://github.com/n2solutionsio/homelab-gitops) has every ArgoCD manifest and Helm values file, and the Terraform modules — [terraform-proxmox-vm](https://github.com/n2solutionsio/terraform-proxmox-vm), [terraform-proxmox-k3s](https://github.com/n2solutionsio/terraform-proxmox-k3s), and [terraform-proxmox-network](https://github.com/n2solutionsio/terraform-proxmox-network) — are fully open source. You get the patterns and the code without my IP addresses and secrets.
+This is the story of that build.
 
-This post is the overview — the "what" and "why." Upcoming posts in this series will tear apart each layer in detail.
+## Starting with the Plan, Not the Code
 
-## The Hardware
+Before I touched a single `.tf` file, I sat down and broke the project into phases. Ten of them. Each phase got its own set of GitHub issues — 30 in total — and each issue was scoped to one deliverable. Not "set up networking" but "configure VLAN trunk on RealHD switch" and "create UniFi firewall rules via Terraform." Small, testable, closeable.
 
-The physical foundation is four devices:
+The phases built on each other like layers of a cake. Foundation first — a Terraform state backend. Then the physical network. Then VLANs and firewall rules. Then Proxmox. Then compute. Then GitOps. Then observability. Then security. Then TLS. Then alerting. Each phase assumed the previous one was solid before moving on.
 
-- **Ubiquiti Dream Machine Pro** — Router and firewall. Manages all VLANs, firewall rules, and DHCP. The brain of the network.
-- **RealHD SW8-10GSFPMG** — 10G SFP+ managed switch. Handles the VLAN trunks between Proxmox and the NAS at line speed.
-- **Proxmox server** — The hypervisor. Dual-NIC: 1G for management, 10G for storage and compute traffic. Runs all VMs.
-- **Asustor NAS** — Dual-NIC as well: 1G for Plex and management, 10G on VLAN 20 for NFS storage. Houses ISOs, k3s persistent volumes, and media.
+This structure turned out to be the single most important decision of the entire project. When something broke — and things broke constantly — I knew exactly which phase introduced the problem. When I picked the project back up after sleeping on a bug, I knew exactly where I left off. The issue tracker was the project's spine, and everything else hung off it.
 
-Pi-hole sits on a Raspberry Pi at 192.168.1.4, handling DNS for the entire network. The AmpliFi Router HD runs in bridge mode as a WiFi access point only — all routing and DHCP goes through the UDM Pro.
+## The Physical Layer
 
-Nothing fancy on paper. The magic is in how it's all wired together.
+The hardware is deceptively simple. A Ubiquiti Dream Machine Pro handles routing, firewalling, VLANs, and DHCP. A RealHD SW8-10GSFPMG gives me 10-gigabit SFP+ switching between the devices that need speed. A Proxmox server runs all the VMs — dual-NIC, with 1G for management and 10G for everything else. An Asustor NAS provides storage, also dual-NIC: 1G for Plex and management traffic, 10G on a dedicated storage VLAN for NFS. A Raspberry Pi runs Pi-hole for DNS, and an AmpliFi Router HD sits in bridge mode as nothing more than a WiFi access point.
 
-## Network Design
+Four main devices, a Pi, and a WiFi AP. Nothing exotic. The magic isn't in the hardware — it's in how it's wired together and how it's managed.
 
-Five VLANs keep traffic isolated:
+## Five VLANs and a 10G Backbone
 
-| VLAN         | Subnet         | Purpose                  |
-| ------------ | -------------- | ------------------------ |
-| 1 (Home)     | 192.168.1.0/24 | Management, clients, DNS |
-| 20 (Storage) | 10.20.20.0/24  | 10G NFS traffic only     |
-| 30 (Compute) | 10.30.30.0/24  | k3s cluster              |
-| 40 (IoT)     | 10.40.40.0/24  | IoT devices, isolated    |
-| 50 (Guest)   | 10.50.50.0/24  | Guest WiFi, isolated     |
+The network runs five VLANs. Home (192.168.1.0/24) carries management traffic, client devices, and DNS. Storage (10.20.20.0/24) is the 10G-only network between Proxmox and the NAS — nothing else touches it. Compute (10.30.30.0/24) is where the k3s cluster lives. IoT and Guest are fully isolated — internet access only, no lateral movement.
 
-The UDM Pro enforces firewall rules between VLANs. Compute can reach the Proxmox API (for monitoring) but nothing else on the home network. IoT and Guest are fully isolated — they get internet and nothing more.
+The UDM Pro enforces strict firewall rules between every VLAN. Compute can reach the Proxmox API on port 8006 for monitoring, but nothing else on the home network. IoT devices can't see the NAS. Guest devices can't see anything. Every rule is defined in OpenTofu via the UniFi provider and lives in version control. If a firewall rule isn't in a `.tf` file, it doesn't exist.
 
-The 10G backbone on VLAN 20 means Proxmox and the NAS communicate at wire speed for NFS operations. VM disk I/O, ISO transfers, and k3s persistent volumes all run over this dedicated storage network. No contention with management or user traffic.
+The 10G backbone on VLAN 20 is the unsung hero. Proxmox and the NAS talk at wire speed for every NFS operation — VM disk I/O, ISO transfers, Kubernetes persistent volumes. Dedicating an entire VLAN and 10G link to storage traffic means the compute and management networks never compete for bandwidth. It's the kind of thing you don't appreciate until you've watched a VM boot from a NAS over a shared 1G link.
 
-All VLAN and firewall configuration is managed with OpenTofu via the UniFi provider. Every rule is in version control.
+## From VMs to a Platform
 
-## The Platform Stack
+Three Ubuntu 24.04 VMs on Proxmox form a k3s cluster on VLAN 30 — one control plane node and two workers. All provisioned with Terraform and cloud-init. One `terragrunt apply` and the cluster exists. The cloud-init templates handle hostname configuration, k3s installation, and node registration automatically.
 
-Three Ubuntu 24.04 VMs on Proxmox form a k3s cluster on VLAN 30:
+On top of k3s, ArgoCD runs the show using an app-of-apps pattern. A single root Application — bootstrapped by Terraform — watches a directory in the `homelab-gitops` repo. Want to deploy a new platform component? Drop a YAML file in that directory. ArgoCD picks it up and deploys it within minutes. No `helm install`. No `kubectl apply`. Git is the only interface.
 
-- **k3s-cp-0** (10.30.30.10) — Control plane
-- **k3s-worker-0** (10.30.30.11) — Worker
-- **k3s-worker-1** (10.30.30.12) — Worker
+The platform stack that ArgoCD manages reads like a CNCF landscape tour: MetalLB for L2 load balancing, Traefik for ingress with Let's Encrypt wildcard TLS via Cloudflare DNS-01, cert-manager for certificate lifecycle, an NFS provisioner for dynamic persistent volumes over the 10G link, External Secrets Operator paired with OpenBao for secrets management, kube-prometheus-stack for metrics and alerting, Loki and Alloy for log aggregation from both pods and syslog, and Falco for runtime security monitoring with eBPF.
 
-All provisioned via Terraform with cloud-init. One `terragrunt apply` and the cluster exists.
+Every single one of those tools is open source. That was a deliberate choice. OpenTofu over Terraform Cloud. OpenBao over HashiCorp Vault. Proxmox over VMware. k3s over managed Kubernetes. ArgoCD, Falco, cert-manager, and MetalLB are CNCF projects. Grafana, Loki, Alloy, and Prometheus come from Grafana Labs. The entire platform runs without a commercial license or SaaS dependency. If any project changes its license tomorrow, I'm not locked in.
 
-On top of k3s, ArgoCD runs the show using an **app-of-apps** pattern. A single root Application (managed by Terraform) watches a directory in the `homelab-gitops` repo. Drop a YAML file in that directory and ArgoCD deploys it within minutes. The platform components:
+## Secrets Without the Pain
 
-- **MetalLB** — L2 load balancer, VIP pool at 10.30.30.200-210
-- **Traefik** — Ingress controller with Let's Encrypt wildcard TLS (DNS-01 via Cloudflare)
-- **cert-manager** — Automated certificate lifecycle
-- **NFS Provisioner** — Dynamic PVs backed by the Asustor NAS over 10G
-- **External Secrets Operator + OpenBao** — Secrets from 1Password flow into Kubernetes automatically
-- **kube-prometheus-stack** — Prometheus, Grafana, AlertManager
-- **Loki + Alloy** — Log aggregation from pods and syslog from every network device
-- **Falco** — Runtime security monitoring with eBPF
+Secrets follow a strict pipeline that I'm genuinely proud of. 1Password is the source of truth — every credential, API token, and certificate lives there. External Secrets Operator pulls secrets via a 1Password Service Account and creates Kubernetes Secrets automatically. OpenBao provides internal KV storage with Kubernetes authentication for anything that doesn't belong in 1Password.
 
-Every one of these is an ArgoCD Application. No `helm install`. No `kubectl apply`. Git is the source of truth.
+The result is that no secret ever touches git. No one runs `kubectl create secret`. No one copies a password into a YAML file. A new service needs a credential? Create the item in 1Password, add an ExternalSecret manifest to the gitops repo, and ArgoCD handles the rest. It's the kind of pipeline that sounds overengineered until you realize how much time it saves and how many security mistakes it prevents.
 
-A deliberate choice here: **every tool in this stack is open source.** OpenTofu over Terraform Cloud. OpenBao over HashiCorp Vault. Proxmox over VMware. k3s over managed Kubernetes. ArgoCD, Falco, cert-manager, and MetalLB are all CNCF projects. Grafana, Loki, Alloy, and Prometheus are open-source Grafana Labs projects. The entire platform runs without a single commercial license or SaaS dependency. If a project gets acquired or changes its license tomorrow, I'm not locked in.
+## The AI That Actually Built It
 
-## IaC Everything
+Here's the part that surprised me most. I didn't build this platform alone. My pair programmer for the entire project was [Claude Code](https://claude.ai/claude-code) — Anthropic's AI coding agent. Not a chatbot I copy-pasted snippets from. An actual CLI agent running in my terminal, reading my codebase, writing Terraform modules, executing commands, and maintaining context across sessions.
 
-Two repos drive the entire infrastructure:
+I'd open a GitHub issue, describe what I needed, and Claude Code would work through it with me — writing the Terragrunt configurations, debugging provider quirks, authoring ArgoCD Application manifests. It understood the architecture because it had built the previous phases. It knew every IP address, every VLAN, every lesson learned, because it maintained a memory system that persisted between sessions.
 
-**`homelab-live`** contains all OpenTofu/Terragrunt code — Proxmox VMs, UniFi networks, firewall rules, the ArgoCD bootstrap, and reusable modules. OpenTofu (the open-source Terraform fork) keeps the IaC layer free from BSL licensing concerns. Terragrunt handles environment structure and dependency ordering.
+The MCP integrations made it even more powerful. I connected Claude Code to my infrastructure via Model Context Protocol servers for Proxmox, UniFi, and the Terraform Registry. It could query my actual switch ports, check VM states, and read network topology in real-time while writing code against them. It wasn't guessing at my infrastructure — it was looking at it.
 
-**`homelab-gitops`** holds ArgoCD Application manifests and Helm values. This is what ArgoCD watches. Adding a new platform component means adding a YAML file here — ArgoCD picks it up and deploys.
+When cloud-init VMs all came up with the hostname "ubuntu" and the k3s nodes collided, Claude Code figured out why and fixed the cloud-init templates. When NFS mounts failed because Ubuntu 24.04 doesn't ship `nfs-common`, it diagnosed the issue and updated the node provisioning. When Loki's replication factor defaulted to 3 and broke with a single replica, it found the config flag and fixed it. These are the kinds of bugs that eat hours when you're searching Stack Overflow alone. With Claude Code, they were diagnosed and resolved in minutes.
 
-Secrets follow a strict pipeline: 1Password is the source of truth. External Secrets Operator pulls secrets via a 1Password Service Account and creates Kubernetes Secrets automatically. OpenBao provides internal KV storage for anything that doesn't belong in 1Password. No secrets in git. No manual `kubectl create secret`. Ever.
+The velocity was something I've never experienced. Ten phases of infrastructure — networking, compute, GitOps, secrets, observability, security, TLS, alerting — all 30 issues closed in under a week. That's not a testament to my typing speed. That's what happens when you combine clear issue scoping with an AI agent that understands your codebase and can operate autonomously within it.
 
-The result: I can rebuild the entire platform from scratch with `terragrunt run-all apply` and a few minutes of ArgoCD sync time. Every configuration decision is documented in code.
+## All of It Is on GitHub
 
-## Breaking It Down: GitHub Issues as the Backbone
+The code is public. The [homelab-gitops](https://github.com/n2solutionsio/homelab-gitops) repo has every ArgoCD Application manifest and Helm values file — you can see exactly how each component is configured and deployed. The Terraform modules are open source too: [terraform-proxmox-vm](https://github.com/n2solutionsio/terraform-proxmox-vm) for base VM provisioning, [terraform-proxmox-k3s](https://github.com/n2solutionsio/terraform-proxmox-k3s) for the cluster, and [terraform-proxmox-network](https://github.com/n2solutionsio/terraform-proxmox-network) for Proxmox bridge and VLAN configuration.
 
-Before writing a single line of Terraform, I broke the entire project into 10 phases and 30 GitHub issues. Each issue was scoped to a single deliverable — "Configure Proxmox VLAN trunk," "Deploy ArgoCD app-of-apps," "Enable AlertManager with Slack notifications." No epics that take a month. No vague tickets. Every issue had clear acceptance criteria and fit into a phase.
-
-The phases built on each other:
-
-1. **Foundation** — State backend
-2. **Physical network** — Switch config, bridge mode
-3. **Logical network** — VLANs, firewall rules
-4. **Hypervisor** — Proxmox networking and storage
-5. _(backlogged)_
-6. **Compute** — k3s cluster
-7. **GitOps + monitoring** — ArgoCD, Prometheus, Grafana
-8. **Logging + security** — Loki, Alloy, Falco
-9. **TLS** — Let's Encrypt wildcard certs
-10. **Alerting** — AlertManager + Slack
-
-This structure was critical. It turned a massive project into a checklist. Each issue got its own branch, its own PR, its own commit history. When something broke, I knew exactly which phase introduced it. When I picked the project back up after a break, I knew exactly where I left off.
-
-If you're planning a homelab build — or any infrastructure project — start with the issue tracker. The code writes itself once the scope is clear.
-
-## The AI Co-Pilot
-
-Here's the part that surprised me: I built this entire platform with Claude Code as my pair programmer. Not as a chatbot I copy-pasted from — as an actual CLI agent running in my terminal, reading my codebase, writing Terraform modules, and executing commands.
-
-Claude Code worked directly against the GitHub issues. I'd open an issue, describe what I needed, and we'd work through it together — often closing multiple issues in a single session. What that looked like in practice:
-
-- **Terraform authoring** — Claude Code wrote the Terragrunt modules for Proxmox VMs, UniFi VLANs, firewall rules, and the k3s cluster. It understood provider quirks (like the UniFi API's race condition with firewall rule indexes) and worked through them.
-- **MCP integrations** — I connected Claude Code to my infrastructure via Model Context Protocol servers — Proxmox, UniFi, and Terraform Registry. It could query my actual switch ports, VM states, and network topology in real-time while writing code against them.
-- **Debugging** — When cloud-init VMs collided on hostnames, when NFS mounts failed because Ubuntu 24.04 doesn't ship `nfs-common`, when Loki's replication factor broke with a single replica — Claude Code diagnosed and fixed these without me having to dig through docs.
-- **GitOps pipeline** — Every ArgoCD Application manifest, Helm values file, and ExternalSecret was authored collaboratively. Claude Code maintained context across sessions using its memory system — it knew the full architecture, every IP address, every lesson learned.
-- **Issue management** — Claude Code created issues, closed them with commits, and tracked what was done vs. what was next. The GitHub project board stayed current without me manually updating it.
-
-The velocity was unreal. Ten phases of infrastructure — networking, compute, GitOps, secrets, observability, security, TLS, alerting — all 30 issues closed in under a week. That's not a testament to my typing speed. It's what happens when you combine clear issue scoping with an AI agent that understands your codebase and can operate autonomously within it.
-
-I'll write a dedicated post about the Claude Code workflow, but the short version: if you're doing IaC work and you're not using an AI coding agent, you're leaving 10x on the table.
+The orchestration repo — `homelab-live` — is private by design. It contains Terragrunt configurations, environment-specific variables, and references to secrets. That's where the 30 issues live and where the phases were tracked. You get the reusable patterns and the actual code without my IP addresses and credentials.
 
 ## What's Next
 
-This is post #1 of an eight-part series. Coming up:
-
-1. **Network deep dive** — VLAN design, firewall rules, and 10G architecture
-2. **Proxmox + Terraform** — IaC for your hypervisor
-3. **k3s on Proxmox** — Lightweight Kubernetes that works
-4. **GitOps with ArgoCD** — The app-of-apps pattern
-5. **Secrets management** — 1Password, ESO, and OpenBao
-6. **Full observability** — Prometheus, Loki, Falco, and AlertManager
-7. **AI-driven IaC** — How Claude Code built the entire platform
-
-Each post will include the actual code, the decisions behind it, and the lessons learned along the way.
+This is post #1 of an eight-part series. Each post will go deep on a specific layer — the actual code, the decisions behind it, and the lessons learned the hard way. Network design. Proxmox with Terraform. k3s cluster bootstrapping. ArgoCD app-of-apps. Secrets management. The full observability stack. And a dedicated post on the Claude Code workflow that made the whole thing possible.
 
 If you're building a homelab and want to do it with real IaC and real open-source tooling — not clicking through UIs or paying for licenses — follow along. Whether you're here for the infrastructure, the CNCF stack, the AI workflow, or all of the above, the code is open source, the process is documented, and I'm sharing everything.
