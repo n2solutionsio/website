@@ -14,7 +14,7 @@ tags:
     'open-source',
     'cncf',
   ]
-draft: true
+draft: false
 ---
 
 My homelab environment has been kind of a mess as of late. I have a lot of big ideas, but most of the time these days I'm finding that I lack the time to work on it. Something else always jumps in front of what I'm trying to do — takes priority, or a shiny thing happens (squirrel!). Over the last few years I've been buying various things for my homelab that I've been wanting to learn or experiment with, and I kept telling myself I'll eventually get to it... With the help of AI, now is that time.
