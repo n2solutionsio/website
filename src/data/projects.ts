@@ -19,8 +19,18 @@ const projects: Project[] = [
   {
     title: 'Homelab Infrastructure',
     description:
-      'Proxmox-based homelab running Kubernetes, Docker, and various self-hosted services. Fully managed with IaC.',
-    tags: ['Proxmox', 'Kubernetes', 'Docker', 'Terraform', 'Ansible'],
+      'Production-grade homelab — 5 VLANs, 10G backbone, 3-node k3s cluster, full GitOps with ArgoCD, and complete observability. Built with Claude Code as AI co-pilot. All open-source, all IaC.',
+    tags: [
+      'Proxmox',
+      'k3s',
+      'ArgoCD',
+      'OpenTofu',
+      'Terragrunt',
+      'Prometheus',
+      'Grafana',
+    ],
+    repo: 'https://github.com/n2solutionsio/homelab-gitops',
+    url: '/blog/homelab-v1/',
     status: 'active',
   },
 ];
